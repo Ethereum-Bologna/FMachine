@@ -109,9 +109,8 @@ contract MyToken is owned{
 
 
    /* admin */
-    function withdraw(address a)returns (bool){
+    function withdraw()onlyOwner returns (bool){
        if(status!=4)revert(); 
-       if(owner!=msg.sender)revert(); 
        if(block.number<endblock+42000)revert(); 
        if(!owner.send(this.balance))revert(); 
        return true;
