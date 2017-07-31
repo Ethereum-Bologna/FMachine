@@ -8,7 +8,7 @@ contract owned {
     }
 
     modifier onlyOwner {
-        if (msg.sender != owner) throw;
+        if (msg.sender != owner) revert();
         _;
     }
 
@@ -37,8 +37,9 @@ contract MyToken is owned{
     uint public maxCap;
     uint public bonus;
     uint public endbonus;
+    uint public startblock;
     uint public endblock;
-    uint public enabled;
+    uint public status;
 
     /* This creates an array with all balances */
     mapping (address => uint256) public balanceOf;
@@ -65,9 +66,9 @@ contract MyToken is owned{
 
     /* Send coins */
     function transfer(address _to, uint256 _value) {
-        if (_to == 0x0) throw;                               // Prevent transfer to 0x0 address. Use burn() instead
-        if (balanceOf[msg.sender] < _value) throw;           // Check if the sender has enough
-        if (balanceOf[_to] + _value < balanceOf[_to]) throw; // Check for overflows
+        if (_to == 0x0) revert();                               // Prevent transfer to 0x0 address. Use burn() instead
+        if (balanceOf[msg.sender] < _value) revert();           // Check if the sender has enough
+        if (balanceOf[_to] + _value < balanceOf[_to]) revert();  // Check for overflows
         balanceOf[msg.sender] -= _value;                     // Subtract from the sender
         balanceOf[_to] += _value;                            // Add the same to the recipient
         Transfer(msg.sender, _to, _value);                   // Notify anyone listening that this transfer took place
@@ -92,10 +93,10 @@ contract MyToken is owned{
 
     /* A contract attempts to get the coins */
     function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
-        if (_to == 0x0) throw;                                // Prevent transfer to 0x0 address. Use burn() instead
-        if (balanceOf[_from] < _value) throw;                 // Check if the sender has enough
-        if (balanceOf[_to] + _value < balanceOf[_to]) throw;  // Check for overflows
-        if (_value > allowance[_from][msg.sender]) throw;     // Check allowance
+        if (_to == 0x0) revert();                                // Prevent transfer to 0x0 address. Use burn() instead
+        if (balanceOf[_from] < _value) revert();                // Check if the sender has enough
+        if (balanceOf[_to] + _value < balanceOf[_to]) revert();  // Check for overflows
+        if (_value > allowance[_from][msg.sender]) revert();     // Check allowance
         balanceOf[_from] -= _value;                           // Subtract from the sender
         balanceOf[_to] += _value;                             // Add the same to the recipient
         allowance[_from][msg.sender] -= _value;
@@ -109,19 +110,19 @@ contract MyToken is owned{
 
    /* admin */
     function withdraw(address a)returns (bool){
-       if(enabled!=4)throw;
-       if(owner!=msg.sender)throw;
-       if(block.number<endBlock+42000)throw;
-       if(!send(owner,this.balance))throw;
+       if(status!=4)revert(); 
+       if(owner!=msg.sender)revert(); 
+       if(block.number<endblock+42000)revert(); 
+       if(!owner.send(this.balance))revert(); 
        return true;
     }
 
 
  /* ICO money */
     function withdrawICO(address a)returns (bool){
-       if(status<3)throw;
+       if(status<3)revert(); 
        if(status==4){
-          if(ICOBalanceOf[msg.sender]<=0)throw;
+          if(ICOBalanceOf[msg.sender]<=0)revert(); 
           uint deposit=ICOBalanceOf[msg.sender];
           uint bonus=ICOBonusOf[msg.sender];
           ICOBalanceOf[msg.sender]=0;
@@ -129,10 +130,10 @@ contract MyToken is owned{
           balanceOf[msg.sender]+=(deposit+bonus)*coinPerETH;
        }
        if((status==5)||(status==6)){
-          uint deposit=ICOBalanceOf[msg.sender];
+          uint dep=ICOBalanceOf[msg.sender];
           ICOBalanceOf[msg.sender]=0;
           ICOBonusOf[msg.sender]=0;
-         if(!send(msg.sender,deposit))throw;  
+         if(!msg.sender.send(dep))revert();  
        }
        return true;
     }
@@ -140,9 +141,9 @@ contract MyToken is owned{
 
     //ICO fixed cost
     function buyICO() payable{
-       if((block.number>=startBlock)&&(status==2))status=3;
-       if((status!=3)||(msg.value<minimumDeposit))throw;
-       if((block.number>=endBlock){
+       if((block.number>=startblock)&&(status==2))status=3;
+       if((status!=3)||(msg.value<minDeposit))revert(); 
+       if(block.number>=endblock){
           //close ico now
           if(this.balance>=minCap){status=4;}else{status=5;}
        }else{
@@ -152,17 +153,17 @@ contract MyToken is owned{
              ICOBonusOf[msg.sender] += msg.value/100*bonus;
              totalSupply+=ICOBalanceOf[msg.sender]+ICOBonusOf[msg.sender];
           }else{
-             ICOBalanceOf[msg.sender] += tot; 
+             ICOBalanceOf[msg.sender] += msg.value; 
              ICOBonusOf[msg.sender]+=0;
              totalSupply+=ICOBalanceOf[msg.sender];
           }  
-       if(totalSupply>hardCap)status=4;        //hardcap raggiunto si blocca la ICO  
+       if(totalSupply>maxCap)status=4;        //hardcap raggiunto si blocca la ICO  
        }          
     }
 
 
     function setSelf(address s,address p,address o)returns(bool){
-       if(enabled==0){
+       if(status==0){
           Pretorivs=Pretorian(p);
           self=s;
           owner=o;
@@ -187,7 +188,7 @@ contract MyToken is owned{
        return true;
     }
 
-    function emergency(){if(msg.sender!=emergency)throw;status=6;}
+    function emergency(){if(msg.sender!=emergency)revert(); status=6;}
 }
 
 
@@ -199,13 +200,13 @@ contract GENERATOR1 is owned{
 
     MyToken newCoin;
     coinLedger coinledger;    address ledgAdr;
-    campainLedger coinledger;    address campLedgAdr;
+    campainLedger campaignledger;    address campLedgAdr;
     uint public cost;
 
     address ax;
 
 
-function GENERATOR1(uint coinCost,address a,address p,,address q){
+function GENERATOR1(uint coinCost,address a,address p,address q){
    cost=coinCost;
    coinledger=coinLedger(p);
    campaignledger=campaignLedger(q);
@@ -221,24 +222,24 @@ function setCost(uint u)onlyOwner{
 
 function create_coin(uint256 initialSupply,string tokenName,string akr,uint8 rew,address refer){
 
-   if((msg.value<cost))throw;
+   if((msg.value<cost))revert(); 
 
    //crea token
    ax=new MyToken(this,initialSupply,tokenName,akr,rew);
 
    //setta proprietà
    newCoin=MyToken(ax);
-   if(!newCoin.setSelf(ax,pretAdr,msg.sender))throw;
+   if(!newCoin.setSelf(ax,pretAdr,msg.sender))revert(); 
 
    //registra coin presso Pretorivs
-   if(!coinledger.registerCoin(ax,tokenName,akr))throw;
-   if(!campaignledger.registerCampaign(ax,msg.sender))throw;
+   if(!coinledger.registerCoin(ax,tokenName,akr))revert(); 
+   if(!campaignledger.registerCampaign(ax,msg.sender))revert(); 
 
 }
 
 
 function withdraw(){
-    if(!(msg.sender.send(this.balance)))throw;
+    if(!(msg.sender.send(this.balance)))revert(); 
 }
 
 function kill() onlyOwner{suicide(owner);}
@@ -249,7 +250,7 @@ function kill() onlyOwner{suicide(owner);}
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 contract coinLedger{
-function registerCoin(address a,string tokenName,string akr,address own)returns (bool){returns true;}
+function registerCoin(address a,string tokenName,string akr,address own)returns (bool){return true;}
 }
 
 
