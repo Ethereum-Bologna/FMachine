@@ -1,3 +1,4 @@
+
 pragma solidity ^0.4.8;
 
 contract owned {
@@ -8,7 +9,7 @@ contract owned {
     }
 
     modifier onlyOwner {
-        if (msg.sender != owner) throw;
+        if (msg.sender != owner) revert();
         _;
     }
 
@@ -58,8 +59,8 @@ NEW_CONTROLLER(a, b);
 return true;}
 
 function registerCoin(address a,string tokenName,string akr,address own)returns (bool){
-if(!controllers[msg.sender])throw;
-if(namecheck[tokenName]||AKRcheck[akr])throw;
+if(!controllers[msg.sender])revert();
+if(namecheck[tokenName]||AKRcheck[akr])revert();
 coins_name_address[tokenName]=a;
 totCoins++;
 coins_list[totCoins]=a;
@@ -81,25 +82,24 @@ return true;
 }
 
 
-function readCoin(uint i)constant returns(address,string,address,uint,uint,uint){
-if(!visible[a])throw;
+function readCoin(uint i)constant returns(address,string,address){
 ax=coins_list[i];
+if(!visible[ax])revert();
 return(coins_list[i],coins_name[ax],coins_owner[ax]);
 }
 
-function coinData(address a)constant returns(uint,string,address,uint,uint,uint){
-if(!visible[a])throw;
+function coinData(address a)constant returns(uint,string,address){
+if(!visible[a])revert();
 return(coins_id[a],coins_name[a],coins_owner[a]);
 }
 
 function whoIS(string name,bool b)constant returns(address,bool){
-if(!visible[a])throw;
 if(b)return(coins_name_address[name],namecheck[name]);
 if(!b)return(coins_akr_address[name],AKRcheck[name]);
 }
 
 function kill() onlyOwner{suicide(owner);}
-function(){throw;}
+function(){revert();}
 
 }
 
@@ -113,7 +113,7 @@ contract campaignLedger is owned{
 //list
 mapping(uint => address)public campaign_list;
 mapping(address => uint)public campaign_id;
-mapping(address => address[])public owned_campaign;
+mapping(address => address[])public owned_campaigns;
 
 //checks
 mapping(address => bool)public controllers;
@@ -137,10 +137,10 @@ NEW_CONTROLLER( a, b);
 return true;}
 
 function registerCampaign(address a,address own)returns (bool){
-if(!controllers[msg.sender])throw;
+if(!controllers[msg.sender])revert();
 totCampaigns++;
-campaign_list[totCoins]=a;
-campaign_id[a]=totCoins;
+campaign_list[totCampaigns]=a;
+campaign_id[a]=totCampaigns;
 owned_campaigns[own].push(a);
 campaign_owner[a]=own;
 NEW_CAMPAIGN(a,own);
@@ -155,18 +155,18 @@ return true;
 
 
 function readCampaign(uint i)constant returns(address,address){
-if(!visible[a])throw;
 ax=campaign_list[i];
+if(!visible[ax])revert();
 return(campaign_list[i],campaign_owner[ax]);
 }
 
 function campaignData(address a)constant returns(uint,address){
-if(!visible[a])throw;
+if(!visible[a])revert();
 return(campaign_id[a],campaign_owner[a]);
 }
 
 function kill() onlyOwner{suicide(owner);}
-function(){throw;}
+function(){revert();}
 
 }
 
@@ -191,15 +191,15 @@ mapping(uint => bool)public visible;
 uint public totModules;
 
     /* This generates a public event on the blockchain that will notify clients */
-    event NEW_MODULE( address indexed module, address owner);
+    event NEW_MODULE( string indexed module, string url);
 
 function addModule(string name,string url)onlyOwner returns (bool){
-module_list[totCoins]=name;
-module_where[totCoins]=url;
-module_id[name]=totCoins;
-visible[totCoins]=true;
 totModules++;
-NEW_MODULE(a,own);
+module_list[totModules]=name;
+module_where[totModules]=url;
+module_id[name]=totModules;
+visible[totModules]=true;
+NEW_MODULE(name,url);
 return true;
 }
 
@@ -220,6 +220,6 @@ return(module_id[s],module_where[module_id[s]],visible[module_id[s]]);
 
 
 function kill() onlyOwner{suicide(owner);}
-function(){throw;}
+function(){revert();}
 
 }
