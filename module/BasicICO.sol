@@ -162,12 +162,10 @@ contract MyToken is owned{
     }
 
 
-    function setSelf(address s,address p,address o)returns(bool){
+    function setSelf(address o)returns(bool){
        if(status==0){
-          Pretorivs=Pretorian(p);
-          self=s;
           owner=o;
-          enabled=1;
+          status=1;
        }
        return true;
     }
@@ -179,12 +177,12 @@ contract MyToken is owned{
        if(code==48)if(status==1)minCap=u;
        if(code==49)if(status==1)maxCap=u;
        if(code==50)if(status==1)bonus=u;
-       if(code==51)if(status==1)endBonus=u;
-       if(code==52)if(status==1)startBlock=u;
-       if(code==53)if(status==1)endBlock=u;      
+       if(code==51)if(status==1)endbonus=u;
+       if(code==52)if(status==1)startblock=u;
+       if(code==53)if(status==1)endblock=u;      
        if(code==99)if(status==1)status=2;                                                                           //blocca settaggi irrevocabilmente
-       if(code==111)if((block.number>=startBlock)&&(status==2))status=3;                                            //attiva startsale
-       if(code==333)if((block.number>endblock)&&(enabled==3))if(this.balance>=minCap){enabled=4;}else{enabled=5;}   //stop startsale
+       if(code==111)if((block.number>=startblock)&&(status==2))status=3;                                            //attiva startsale
+       if(code==333)if((block.number>endblock)&&(status==3))if(this.balance>=minCap){status=4;}else{status=5;}   //stop startsale
        return true;
     }
 
@@ -200,18 +198,18 @@ contract GENERATOR1 is owned{
 
     MyToken newCoin;
     coinLedger coinledger;    address ledgAdr;
-    campainLedger campaignledger;    address campLedgAdr;
+    campaignLedger campaignledger;    address campLedgAdr;
     uint public cost;
 
     address ax;
 
 
-function GENERATOR1(uint coinCost,address a,address p,address q){
+function GENERATOR1(uint coinCost,address coins,address campaigns){
    cost=coinCost;
-   coinledger=coinLedger(p);
-   campaignledger=campaignLedger(q);
-   ledgAdr=p;
-   campLedgAdr=q;
+   coinledger=coinLedger(coins);
+   campaignledger=campaignLedger(campaigns);
+   ledgAdr=coins;
+   campLedgAdr=campaigns;
 }
 
 
@@ -220,19 +218,19 @@ function setCost(uint u)onlyOwner{
 }
 
 
-function create_coin(uint256 initialSupply,string tokenName,string akr,uint8 rew,address refer){
+function create_coin(uint256 initialSupply,string tokenName,uint8 dec,string sym){
 
    if((msg.value<cost))revert(); 
 
    //crea token
-   ax=new MyToken(this,initialSupply,tokenName,akr,rew);
+   ax=new MyToken(initialSupply,tokenName,dec,sym);
 
    //setta proprietà
    newCoin=MyToken(ax);
-   if(!newCoin.setSelf(ax,pretAdr,msg.sender))revert(); 
+   if(!newCoin.setSelf(msg.sender))revert(); 
 
    //registra coin presso Pretorivs
-   if(!coinledger.registerCoin(ax,tokenName,akr))revert(); 
+   if(!coinledger.registerCoin(ax,tokenName,sym,owner))revert(); 
    if(!campaignledger.registerCampaign(ax,msg.sender))revert(); 
 
 }
