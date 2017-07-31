@@ -217,8 +217,8 @@ function setCoinLedger(address coins)onlyOwner{
 }
 
 function setCampaignLedger(address campaign)onlyOwner{
-   campaignledger=campaignLedger(campaigns);
-   campLedgAdr=campaigns;
+   campaignledger=campaignLedger(campaign);
+   campLedgAdr=campaign;
 }
 
 
