@@ -118,7 +118,7 @@ contract MyToken is owned{
 
 
  /* ICO money */
-    function withdrawICO(address a)returns (bool){
+    function withdrawICO()returns (bool){
        if(status<3)revert(); 
        if(status==4){
           if(ICOBalanceOf[msg.sender]<=0)revert(); 
@@ -217,7 +217,7 @@ function setCost(uint u)onlyOwner{
 }
 
 
-function create_coin(uint256 initialSupply,string tokenName,uint8 dec,string sym)payable{
+function create_coin(uint256 initialSupply,string tokenName,uint8 dec,string sym) payable{
 
    if((msg.value<cost))revert(); 
 
@@ -247,7 +247,8 @@ function kill() onlyOwner{suicide(owner);}
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 contract coinLedger{
-function registerCoin(address a,string tokenName,string akr,address own)returns (bool){return true;}
+string t;
+function registerCoin(address a,string tokenName,string akr,address own)returns (bool){address aa=a; t=tokenName; t=akr;aa=own;return true;}
 }
 
 
@@ -256,7 +257,7 @@ function registerCoin(address a,string tokenName,string akr,address own)returns 
 
 contract campaignLedger is owned{
 
-function registerCampaign(address a,address own)returns (bool){return true;}
+function registerCampaign(address a,address own)returns (bool){address aa=a;aa=own;return true;}
 
 }
 
@@ -267,7 +268,6 @@ function registerCampaign(address a,address own)returns (bool){return true;}
 
 
 contract platformLedger is owned{
-
-function addModule(string name,string url)onlyOwner returns (bool){return true;}
-
+string temp;
+function addModule(string name,string url)onlyOwner returns (bool){temp=name; temp=url;return true;}
 }
