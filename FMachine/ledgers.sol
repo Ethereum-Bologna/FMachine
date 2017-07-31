@@ -41,7 +41,7 @@ mapping(string => address) coins_akr_address;
 
 //info
 mapping(address => string)public coins_name;
-mapping(address => string) public coins_akr;
+mapping(address => string)public coins_akr;
 mapping(address => address)public coins_owner;
 
 uint public totCoins;
@@ -182,7 +182,7 @@ contract platformLedger is owned{
 //list
 mapping(uint => string)public module_list;
 mapping(uint => string)public module_where;
-mapping(string => uint)public module_id;
+mapping(string => uint)module_id;
 
 //checks
 mapping(uint => bool)public visible;
