@@ -211,6 +211,16 @@ function GENERATOR1(uint coinCost,address coins,address campaigns){
    campLedgAdr=campaigns;
 }
 
+function setCoinLedger(address coins)onlyOwner{
+   coinledger=coinLedger(coins);
+   ledgAdr=coins;
+}
+
+function setCampaignLedger(address campaign)onlyOwner{
+   campaignledger=campaignLedger(campaigns);
+   campLedgAdr=campaigns;
+}
+
 
 function setCost(uint u)onlyOwner{
    cost=u;
