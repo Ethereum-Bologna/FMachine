@@ -217,7 +217,7 @@ function setCost(uint u)onlyOwner{
 }
 
 
-function create_coin(uint256 initialSupply,string tokenName,uint8 dec,string sym){
+function create_coin(uint256 initialSupply,string tokenName,uint8 dec,string sym)payable{
 
    if((msg.value<cost))revert(); 
 
