@@ -176,14 +176,20 @@ contract MyToken is owned{
     }
     
     function setTeam(address tm){
-    if((status==6)||(status==7))if(msg.sender==agency){status=7;team=tm;}
+    if((status==4)||(status==7))if(msg.sender==agency){status=7;team=tm;}
     if(status==7)if(msg.sender==creator){if(team==tm)status=8;}
+    }
+    
+    function set(address temp){
+    if(msg.sender==creator)creator=temp;
+    if(msg.sender==agency)agency=temp;
+    if(msg.sender==team)team=temp;
     }
     
     function release(address tm,uint amount){
     if(status==8)if(msg.sender==team){releaseAmount=amount;}
-    if(status==8)if(msg.sender==agency){if(releaseAmount==amount)agencyconfirm=true;}
-    if(status==8)if(msg.sender==creator){if(releaseAmount==amount)creatorconfirm=true;}
+    if(status==8)if(msg.sender==agency){if(releaseAmount==amount){if(creatorconfirm){releaseAmount=0;creatorconfirm=false;if(!team.send(amount)revert();)}else{agencyconfirm=true;}}
+    if(status==8)if(msg.sender==creator){if(releaseAmount==amount){if(agencyconfirm){releaseAmount=0;agencyconfirm=false;if(!team.send(amount)revert();)}else{cretorconfirm=true;}}
     }
 
     function payCreator() internal returns(true){
