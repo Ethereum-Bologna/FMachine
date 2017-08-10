@@ -29,6 +29,9 @@ contract MyToken is owned{
     string public symbol;
     uint8 public decimals;
     uint256 public totalSupply;
+    uint public releaseAmount;
+    bool public creatorconfirm;
+    bool public agencyconfirm;
 
      /* ICO settings */
     address public creator;
@@ -175,6 +178,12 @@ contract MyToken is owned{
     function setTeam(address tm){
     if((status==6)||(status==7))if(msg.sender==agency){status=7;team=tm;}
     if(status==7)if(msg.sender==creator){if(team==tm)status=8;}
+    }
+    
+    function release(address tm,uint amount){
+    if(status==8)if(msg.sender==team){releaseAmount=amount;}
+    if(status==8)if(msg.sender==agency){if(releaseAmount==amount)agencyconfirm=true;}
+    if(status==8)if(msg.sender==creator){if(releaseAmount==amount)creatorconfirm=true;}
     }
 
     function payCreator() internal returns(true){
