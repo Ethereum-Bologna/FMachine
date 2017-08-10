@@ -31,6 +31,8 @@ contract MyToken is owned{
     uint256 public totalSupply;
 
      /* ICO settings */
+    address public creator;
+    address public agency;
     uint public minDeposit;
     uint public coinPerETH;
     uint public minCap;
@@ -57,11 +59,12 @@ contract MyToken is owned{
         uint8 decimalUnits,
         string tokenSymbol
         ) {
-        balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
-        totalSupply = initialSupply;                        // Update total supply
+        //balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
+        totalSupply = 0;                        // Update total supply
         name = tokenName;                                   // Set the name for display purposes
         symbol = tokenSymbol;                               // Set the symbol for display purposes
         decimals = decimalUnits;                            // Amount of decimals for display purposes
+        
     }
 
     /* Send coins */
@@ -144,7 +147,7 @@ contract MyToken is owned{
        if((status!=3)||(msg.value<minDeposit))revert(); 
        if(block.number>=endblock){
           //close ico now
-          if(this.balance>=minCap){status=4;}else{status=5;}
+          if(this.balance>=minCap){status=4;if(!payCreator())revert();}else{status=5;}
        }else{
           //ico open
           if(block.number<endbonus){
@@ -156,7 +159,7 @@ contract MyToken is owned{
              ICOBonusOf[msg.sender]+=0;
              totalSupply+=ICOBalanceOf[msg.sender];
           }  
-       if(totalSupply>maxCap)status=4;        //hardcap raggiunto si blocca la ICO  
+       if(totalSupply>maxCap){status=4;if(!payCreator())revert();}        //hardcap raggiunto si blocca la ICO  
        }          
     }
 
@@ -168,7 +171,19 @@ contract MyToken is owned{
        }
        return true;
     }
+    
+    function setTeam(address tm){
+    if((status==6)||(status==7))if(msg.sender==agency){status=7;team=tm;}
+    if(status==7)if(msg.sender==creator){if(team==tm)status=8;}
+    }
 
+    function payCreator() internal returns(true){
+    if(!creator.send(this.balance/100*15))revert();
+    if(!agency.send(this.balance/100*10))revert();
+    ICOBalanceOf[creator]=totalSupply/100*2.5;
+    ICOBalanceOf[agency]=ICOBalanceOf[creator];
+    totalSupply+=ICOBalanceOf[agency]*2;
+    }
 
     /* Change Owner */
     function manager(uint code,uint256 u)onlyOwner returns(bool){
@@ -181,7 +196,7 @@ contract MyToken is owned{
        if(code==53)if(status==1)endblock=u;      
        if(code==99)if(status==1)status=2;                                                                           //blocca settaggi irrevocabilmente
        if(code==111)if((block.number>=startblock)&&(status==2))status=3;                                            //attiva startsale
-       if(code==333)if((block.number>endblock)&&(status==3))if(this.balance>=minCap){status=4;}else{status=5;}   //stop startsale
+       if(code==333)if((block.number>endblock)&&(status==3))if(this.balance>=minCap){status=4;if(!payCreator())revert();}else{status=5;}   //stop startsale
        return true;
     }
 
