@@ -116,7 +116,7 @@ contract MyToken is owned{
 
    /* admin */
     function withdraw()onlyOwner returns (bool){
-       if(status!=4)revert(); 
+       if(status!=5)revert(); 
        if(block.number<endblock+42000)revert(); 
        if(!owner.send(this.balance))revert(); 
        return true;
@@ -125,8 +125,8 @@ contract MyToken is owned{
 
  /* ICO money */
     function withdrawICO()returns (bool){
-       if(status<3)revert(); 
-       if(status==4){
+       if(status<4)revert(); 
+       if(status==5){
           if(ICOBalanceOf[msg.sender]<=0)revert(); 
           uint deposit=ICOBalanceOf[msg.sender];
           uint bonus=ICOBonusOf[msg.sender];
@@ -134,7 +134,7 @@ contract MyToken is owned{
           ICOBonusOf[msg.sender]=0;
           balanceOf[msg.sender]+=(deposit+bonus)*coinPerETH;
        }
-       if((status==5)||(status==6)){
+       if((status==6)||(status==7)){
           uint dep=ICOBalanceOf[msg.sender];
           ICOBalanceOf[msg.sender]=0;
           ICOBonusOf[msg.sender]=0;
@@ -146,11 +146,11 @@ contract MyToken is owned{
 
     //ICO fixed cost
     function buyICO() payable{
-       if((block.number>=startblock)&&(status==2))status=3;
-       if((status!=3)||(msg.value<minDeposit))revert(); 
+       if((block.number>=startblock)&&(status==3))status=4;
+       if((status!=4)||(msg.value<minDeposit))revert(); 
        if(block.number>=endblock){
           //close ico now
-          if(this.balance>=minCap){status=4;if(!payCreator())revert();}else{status=5;}
+          if(this.balance>=minCap){status=5;if(!payCreator())revert();}else{status=6;}
        }else{
           //ico open
           if(block.number<endbonus){
@@ -162,7 +162,7 @@ contract MyToken is owned{
              ICOBonusOf[msg.sender]+=0;
              totalSupply+=ICOBalanceOf[msg.sender];
           }  
-       if(totalSupply>maxCap){status=4;if(!payCreator())revert();}        //hardcap raggiunto si blocca la ICO  
+       if(totalSupply>maxCap){status=5;if(!payCreator())revert();}        //hardcap raggiunto si blocca la ICO  
        }          
     }
 
@@ -175,9 +175,17 @@ contract MyToken is owned{
        return true;
     }
     
+    function setAgency(address temp){
+    if(msg.sender!=creator)revert();
+    if(status==1){
+    status=2;
+    agency=temp;
+    owner=temp;}else{revert();}
+    }
+    
     function setTeam(address tm){
-    if((status==4)||(status==7))if(msg.sender==agency){status=7;team=tm;}
-    if(status==7)if(msg.sender==creator){if(team==tm)status=8;}
+    if((status==5)||(status==8))if(msg.sender==agency){status=8;team=tm;}
+    if(status==8)if(msg.sender==creator){if(team==tm)status=9;}
     }
     
     function set(address temp){
@@ -187,9 +195,9 @@ contract MyToken is owned{
     }
     
     function release(address tm,uint amount){
-    if(status==8)if(msg.sender==team){releaseAmount=amount;}
-    if(status==8)if(msg.sender==agency){if(releaseAmount==amount){if(creatorconfirm){releaseAmount=0;creatorconfirm=false;if(!team.send(amount)revert();)}else{agencyconfirm=true;}}
-    if(status==8)if(msg.sender==creator){if(releaseAmount==amount){if(agencyconfirm){releaseAmount=0;agencyconfirm=false;if(!team.send(amount)revert();)}else{cretorconfirm=true;}}
+    if(status==9)if(msg.sender==team){releaseAmount=amount;}
+    if(status==9)if(msg.sender==agency){if(releaseAmount==amount){if(creatorconfirm){releaseAmount=0;creatorconfirm=false;if(!team.send(amount)revert();)}else{agencyconfirm=true;}}
+    if(status==9)if(msg.sender==creator){if(releaseAmount==amount){if(agencyconfirm){releaseAmount=0;agencyconfirm=false;if(!team.send(amount)revert();)}else{cretorconfirm=true;}}
     }
 
     function payCreator() internal returns(true){
@@ -202,20 +210,20 @@ contract MyToken is owned{
 
     /* Change Owner */
     function manager(uint code,uint256 u)onlyOwner returns(bool){
-       if(code==47)if(status==1)coinPerETH=u;
-       if(code==48)if(status==1)minCap=u;
-       if(code==49)if(status==1)maxCap=u;
-       if(code==50)if(status==1)bonus=u;
-       if(code==51)if(status==1)endbonus=u;
-       if(code==52)if(status==1)startblock=u;
-       if(code==53)if(status==1)endblock=u;      
-       if(code==99)if(status==1)status=2;                                                                           //blocca settaggi irrevocabilmente
-       if(code==111)if((block.number>=startblock)&&(status==2))status=3;                                            //attiva startsale
-       if(code==333)if((block.number>endblock)&&(status==3))if(this.balance>=minCap){status=4;if(!payCreator())revert();}else{status=5;}   //stop startsale
+       if(code==47)if(status==2)coinPerETH=u;
+       if(code==48)if(status==2)minCap=u;
+       if(code==49)if(status==2)maxCap=u;
+       if(code==50)if(status==2)bonus=u;
+       if(code==51)if(status==2)endbonus=u;
+       if(code==52)if(status==2)startblock=u;
+       if(code==53)if(status==2)endblock=u;      
+       if(code==99)if(status==2)status=3;                                                                           //blocca settaggi irrevocabilmente
+       if(code==111)if((block.number>=startblock)&&(status==3))status=4;                                            //attiva startsale
+       if(code==333)if((block.number>endblock)&&(status==4))if(this.balance>=minCap){status=5;if(!payCreator())revert();}else{status=6;}   //stop startsale
        return true;
     }
 
-    function emergency(){if(msg.sender!=emergency)revert(); status=6;}
+    function emergency(){if(msg.sender!=emergency)revert(); status=7;}
 }
 
 
